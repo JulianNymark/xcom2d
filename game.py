@@ -35,6 +35,7 @@ class Cell:
         self.pixel_location = [0, 0]
 
     def render(self, surface):
+        global under_mouse
         if self.location == under_mouse:
             color = COLOR_GRAY
         else:
@@ -50,17 +51,16 @@ class Cell:
             self.location[0]*GRID_SIZE + self.offset[0],
             self.location[1]*GRID_SIZE + self.offset[1]
         ]
-        m = pygame.mouse.get_pos()
-        if (not m[0] < self.pixel_location[0]
-            and not m[0] > self.pixel_location[0] + GRID_SIZE
-            and not m[1] < self.pixel_location[1]
-            and not m[1] > self.pixel_location[1] + GRID_SIZE):
-            global under_mouse
-            under_mouse = self.location
 
 class Grid:
     def __init__(self, x, y, w, h, cell_shape):
         self.cells = [[Cell(i, j, w / cell_shape[0], h / cell_shape[1]) for j in range(cell_shape[0])] for i in range(cell_shape[1])]
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.cell_shape = cell_shape
+
         for c in self.cells:
             for c in c:
                 c.offset = [x, y]
@@ -69,18 +69,20 @@ class Grid:
         for c in self.cells:
             for c in c:
                 c.render(surface)
+        # pygame.draw.circle(surface, COLOR_WHITE, [round(self.x), round(self.y)], 10)
 
     def update(self):
+        m = pygame.mouse.get_pos()
+        global under_mouse
+        under_mouse = [math.floor((m[0] - self.x) / GRID_SIZE), math.floor((m[1] - self.y) / GRID_SIZE)]
+
         for c in self.cells:
             for c in c:
                 c.update()
 
-
-
 def randomize_player_locations():
     for p in players:
         p.grid_location = [random.randint(0, MAP_SIZE[0]-1), random.randint(0, MAP_SIZE[1]-1)]
-
 
 pygame.font.init()
 default_font = pygame.font.get_default_font()
